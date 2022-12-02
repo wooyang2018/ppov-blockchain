@@ -46,6 +46,6 @@ var DefaultConfig = Config{
 	ProposeTimeout:  500 * time.Millisecond,
 	BatchTimeout:    500 * time.Millisecond,
 	BlockDelay:      40 * time.Millisecond, // maximum block rate = 25 blk per sec
-	ViewWidth:       30 * time.Second,
-	LeaderTimeout:   10 * time.Second,
+	ViewWidth:       90 * time.Second,
+	LeaderTimeout:   30 * time.Second,
 }

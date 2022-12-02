@@ -9,10 +9,11 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/wooyang2018/ppov-blockchain/pb"
 	"golang.org/x/crypto/sha3"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/wooyang2018/ppov-blockchain/pb"
 )
 
 // errors
@@ -23,12 +24,10 @@ var (
 
 // Block type
 type Block struct {
-	data         *pb.Block
-	proposer     *PublicKey
-	quorumCert   *QuorumCert
-	batchs       []*Batch
-	txList       *TxList
-	transactions [][]byte
+	data       *pb.Block
+	proposer   *PublicKey
+	quorumCert *QuorumCert
+	headers    []*BatchHeader
 }
 
 var _ json.Marshaler = (*Block)(nil)
@@ -52,8 +51,8 @@ func (blk *Block) Sum() []byte {
 	binary.Write(h, binary.BigEndian, blk.data.ExecHeight)
 	h.Write(blk.data.MerkleRoot)
 	binary.Write(h, binary.BigEndian, blk.data.Timestamp)
-	for _, batch := range blk.data.Batchs {
-		h.Write(batch.Hash)
+	for _, header := range blk.data.BatchHeaders {
+		h.Write(header.Hash)
 	}
 	return h.Sum(nil)
 }
@@ -67,7 +66,7 @@ func (blk *Block) Validate(vs ValidatorStore) error {
 		if err := blk.quorumCert.Validate(vs); err != nil {
 			return err
 		}
-		for _, batch := range blk.Batchs() {
+		for _, batch := range blk.BatchHeaders() {
 			if err := batch.Validate(vs); err != nil {
 				return err
 			}
@@ -121,10 +120,10 @@ func (blk *Block) setData(data *pb.Block) error {
 		if err := blk.quorumCert.setData(data.QuorumCert); err != nil {
 			return err
 		}
-		blk.batchs = make([]*Batch, len(data.Batchs))
-		for index := range blk.batchs {
-			blk.batchs[index] = NewBatch()
-			if err := blk.batchs[index].setData(data.Batchs[index]); err != nil {
+		blk.headers = make([]*BatchHeader, len(data.BatchHeaders))
+		for index := range blk.headers {
+			blk.headers[index] = NewBatchHeader()
+			if err := blk.headers[index].setData(data.BatchHeaders[index]); err != nil {
 				return err
 			}
 		}
@@ -134,26 +133,6 @@ func (blk *Block) setData(data *pb.Block) error {
 		return err
 	}
 	blk.proposer = proposer
-	return blk.setInternalData()
-}
-
-func (blk *Block) setInternalData() error {
-	//使用集合对Batch中的交易进行去重
-	txSet := make(map[string]struct{})
-	txList := make([]*Transaction, 0)
-	transactions := make([][]byte, 0)
-	for _, batch := range blk.batchs {
-		for _, tx := range *batch.TxList() {
-			if _, ok := txSet[string(tx.Hash())]; !ok {
-				txSet[string(tx.Hash())] = struct{}{}
-				txList = append(txList, tx)
-				transactions = append(transactions, tx.Hash())
-			}
-		}
-	}
-	res := TxList(txList)
-	blk.txList = &res
-	blk.transactions = transactions
 	return nil
 }
 
@@ -188,14 +167,13 @@ func (blk *Block) SetTimestamp(val int64) *Block {
 	return blk
 }
 
-func (blk *Block) SetBatchs(val []*Batch) *Block {
-	blk.data.Batchs = make([]*pb.Batch, len(val))
-	blk.batchs = make([]*Batch, len(val))
+func (blk *Block) SetBatchHeaders(val []*BatchHeader) *Block {
+	blk.data.BatchHeaders = make([]*pb.BatchHeader, len(val))
+	blk.headers = make([]*BatchHeader, len(val))
 	for index := range val {
-		blk.batchs[index] = val[index]
-		blk.data.Batchs[index] = val[index].data
+		blk.headers[index] = val[index]
+		blk.data.BatchHeaders[index] = val[index].data
 	}
-	blk.setInternalData()
 	return blk
 }
 
@@ -212,18 +190,17 @@ func (blk *Block) Sign(signer Signer) *Block {
 	return blk
 }
 
-func (blk *Block) Hash() []byte            { return blk.data.Hash }
-func (blk *Block) Height() uint64          { return blk.data.Height }
-func (blk *Block) ParentHash() []byte      { return blk.data.ParentHash }
-func (blk *Block) Proposer() *PublicKey    { return blk.proposer }
-func (blk *Block) QuorumCert() *QuorumCert { return blk.quorumCert }
-func (blk *Block) ExecHeight() uint64      { return blk.data.ExecHeight }
-func (blk *Block) MerkleRoot() []byte      { return blk.data.MerkleRoot }
-func (blk *Block) Timestamp() int64        { return blk.data.Timestamp }
-func (blk *Block) IsGenesis() bool         { return blk.Height() == 0 }
-func (blk *Block) Batchs() []*Batch        { return blk.batchs }
-func (blk *Block) Transactions() [][]byte  { return blk.data.Transactions }
-func (blk *Block) TxList() *TxList         { return blk.txList }
+func (blk *Block) Hash() []byte                 { return blk.data.Hash }
+func (blk *Block) Height() uint64               { return blk.data.Height }
+func (blk *Block) ParentHash() []byte           { return blk.data.ParentHash }
+func (blk *Block) Proposer() *PublicKey         { return blk.proposer }
+func (blk *Block) QuorumCert() *QuorumCert      { return blk.quorumCert }
+func (blk *Block) ExecHeight() uint64           { return blk.data.ExecHeight }
+func (blk *Block) MerkleRoot() []byte           { return blk.data.MerkleRoot }
+func (blk *Block) Timestamp() int64             { return blk.data.Timestamp }
+func (blk *Block) IsGenesis() bool              { return blk.Height() == 0 }
+func (blk *Block) BatchHeaders() []*BatchHeader { return blk.headers }
+func (blk *Block) Transactions() [][]byte       { return blk.data.Transactions }
 
 // Marshal encodes blk as bytes
 func (blk *Block) Marshal() ([]byte, error) {

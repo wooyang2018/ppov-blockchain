@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+
 	"github.com/wooyang2018/ppov-blockchain/tests/cluster"
 	"github.com/wooyang2018/ppov-blockchain/tests/health"
 	"github.com/wooyang2018/ppov-blockchain/tests/testutil"

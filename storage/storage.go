@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v3"
+	_ "golang.org/x/crypto/sha3"
+
 	"github.com/wooyang2018/ppov-blockchain/core"
 	"github.com/wooyang2018/ppov-blockchain/logger"
 	"github.com/wooyang2018/ppov-blockchain/merkle"
-	_ "golang.org/x/crypto/sha3"
 )
 
 type CommitData struct {

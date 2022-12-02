@@ -142,13 +142,9 @@ func (pm *pacemaker) newBatch() {
 	}
 
 	signer := pm.resources.Signer
-	batch := core.NewBatch().
-		SetTransactions(pm.resources.TxPool.PopTxsFromQueue(pm.config.BatchTxLimit)).
-		SetTimestamp(time.Now().UnixNano()).
-		Sign(signer)
-	pm.voterState.addBatch(batch)
+	batch := core.NewBatch().SetTransactions(pm.resources.TxPool.PopTxsFromQueue(pm.config.BatchTxLimit)).SetTimestamp(time.Now().UnixNano()).Sign(signer)
+	pm.voterState.addBatch(batch.Header())
 	pm.resources.MsgSvc.BroadcastBatch(batch)
-
 	widx := pm.resources.VldStore.GetWorkerIndex(signer.PublicKey())
-	logger.I().Debugw("generated batch", "txs", len(batch.Transactions()), "worker", widx)
+	logger.I().Debugw("generated batch", "txs", len(batch.Header().Transactions()), "worker", widx)
 }

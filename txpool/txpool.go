@@ -12,7 +12,7 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/logger"
 )
 
-const IsBroadcastTx = false //是否广播交易
+const IsBroadcastTx = true //是否广播交易
 
 type Status struct {
 	Total   int `json:"total"`   //Total = len(txStore.txItems)

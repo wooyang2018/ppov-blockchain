@@ -8,14 +8,14 @@ import (
 )
 
 type voterState struct {
-	batchQ         []*core.Batch //待投票的Batch队列
+	batchQ         []*core.BatchHeader //待投票的Batch队列
 	voteBatchLimit int
 	mtxState       sync.RWMutex
 }
 
 func newVoterState() *voterState {
 	return &voterState{
-		batchQ: make([]*core.Batch, 0),
+		batchQ: make([]*core.BatchHeader, 0),
 	}
 }
 
@@ -26,7 +26,7 @@ func (v *voterState) setVoteBatchLimit(voteBatchLimit int) *voterState {
 	return v
 }
 
-func (v *voterState) addBatch(batch *core.Batch) {
+func (v *voterState) addBatch(batch *core.BatchHeader) {
 	v.mtxState.Lock()
 	defer v.mtxState.Unlock()
 	v.batchQ = append(v.batchQ, batch)
@@ -39,12 +39,12 @@ func (v *voterState) hasEnoughBatch() bool {
 }
 
 // popBatch 从队列头部弹出num个Batch
-func (v *voterState) popBatch() []*core.Batch {
+func (v *voterState) popBatch() []*core.BatchHeader {
 	v.mtxState.Lock()
 	defer v.mtxState.Unlock()
 
 	num := v.voteBatchLimit
-	res := make([]*core.Batch, 0, num)
+	res := make([]*core.BatchHeader, 0, num)
 	for _, batch := range v.batchQ {
 		if num <= 0 {
 			break
@@ -57,11 +57,11 @@ func (v *voterState) popBatch() []*core.Batch {
 }
 
 type leaderState struct {
-	batchMap    map[string]*core.Batch       //batch hash -> batch
+	batchMap    map[string]*core.BatchHeader //batch hash -> batch
 	batchSigns  map[string][]*core.Signature //batch hash -> signature list
 	batchStopCh map[string]chan struct{}
 
-	batchReadyQ []*core.Batch //就绪Batch队列
+	batchReadyQ []*core.BatchHeader //就绪Batch队列
 
 	batchWaitTime   time.Duration //Batch超时时间
 	blockBatchLimit int
@@ -72,10 +72,10 @@ type leaderState struct {
 
 func newLeaderState() *leaderState {
 	return &leaderState{
-		batchMap:    make(map[string]*core.Batch),
+		batchMap:    make(map[string]*core.BatchHeader),
 		batchSigns:  make(map[string][]*core.Signature),
 		batchStopCh: make(map[string]chan struct{}),
-		batchReadyQ: make([]*core.Batch, 0),
+		batchReadyQ: make([]*core.BatchHeader, 0),
 	}
 }
 
@@ -104,7 +104,7 @@ func (l *leaderState) addBatchVote(vote *core.BatchVote) {
 	l.mtxState.Lock()
 	defer l.mtxState.Unlock()
 	for index, sig := range vote.Signatures() {
-		batch := vote.Batchs()[index]
+		batch := vote.BatchHeaders()[index]
 		hash := string(batch.Hash())
 		//如果第一次收到对该Batch的投票
 		if _, ok := l.batchMap[hash]; !ok {
@@ -127,14 +127,14 @@ func (l *leaderState) addBatchVote(vote *core.BatchVote) {
 }
 
 // popReadyBatch 从就绪队列的头部弹出num个Batch
-func (l *leaderState) popReadyBatch() []*core.Batch {
+func (l *leaderState) popReadyBatch() []*core.BatchHeader {
 	l.mtxState.Lock()
 	defer l.mtxState.Unlock()
 
 	num := l.blockBatchLimit
-	res := make([]*core.Batch, 0, num)
+	res := make([]*core.BatchHeader, 0, num)
 	for _, batch := range l.batchReadyQ {
-		if num <= 0 {
+		if num <= 0 { //TODO 改写法
 			break
 		}
 		num--

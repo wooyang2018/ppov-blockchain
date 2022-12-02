@@ -15,18 +15,22 @@ message Block {
   bytes merkleRoot = 7;
   int64 timestamp = 8;
   bytes signature = 9; // signature of proposer
-  repeated Batch batchs = 10;
+  repeated BatchHeader batchHeaders = 10;
   repeated bytes transactions = 11; // transaction hashes
 }
 
 message Batch{
+  BatchHeader header =1;
+  repeated Transaction txList = 2; //transaction list
+}
+
+message BatchHeader{
   bytes hash = 1;
   bytes proposer = 2;
   BatchQuorumCert batchQuorumCert = 3;
   int64 timestamp = 4;
   bytes signature = 5; // signature of proposer
   repeated bytes transactions = 6; // transaction hashes
-  repeated Transaction txList = 7; //transaction list
 }
 
 message BlockCommit {
@@ -60,7 +64,7 @@ message Vote {
 }
 
 message BatchVote {
-  repeated Batch batchs = 1;
+  repeated BatchHeader batchHeaders = 1;
   repeated Signature signatures = 2;
 }
 

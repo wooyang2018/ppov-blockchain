@@ -14,8 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wooyang2018/ppov-blockchain/execution/chaincode"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/wooyang2018/ppov-blockchain/execution/chaincode"
 )
 
 type CodeDriver struct {

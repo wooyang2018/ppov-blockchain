@@ -4,8 +4,9 @@
 package core
 
 import (
-	"github.com/wooyang2018/ppov-blockchain/pb"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/wooyang2018/ppov-blockchain/pb"
 )
 
 type StateChange struct {

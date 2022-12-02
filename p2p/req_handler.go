@@ -3,9 +3,10 @@ package p2p
 import (
 	"encoding/binary"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/wooyang2018/ppov-blockchain/core"
 	"github.com/wooyang2018/ppov-blockchain/pb"
-	"google.golang.org/protobuf/proto"
 )
 
 type ReqHandler interface {

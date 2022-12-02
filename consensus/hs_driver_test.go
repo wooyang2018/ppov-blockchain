@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/wooyang2018/ppov-blockchain/core"
 	"github.com/wooyang2018/ppov-blockchain/hotstuff"
 	"github.com/wooyang2018/ppov-blockchain/storage"
@@ -60,8 +61,8 @@ func TestHsDriver_CreateLeaf(t *testing.T) {
 	txsInQ := [][]byte{[]byte("tx1"), []byte("tx2")}
 
 	hsd.leaderState = newLeaderState().setBatchWaitTime(3 * time.Second).setBatchSignLimit(1).setBlockBatchLimit(1)
-	batch := core.NewBatch().SetTransactions(txsInQ).Sign(signer)
-	batchVote := core.NewBatchVote().Build([]*core.Batch{batch}, signer)
+	batch := core.NewBatch().Header().SetTransactions(txsInQ).Sign(signer)
+	batchVote := core.NewBatchVote().Build([]*core.BatchHeader{batch}, signer)
 	hsd.leaderState.addBatchVote(batchVote)
 
 	leaf := hsd.CreateLeaf(parent, qc, height)
@@ -132,12 +133,12 @@ func TestHsDriver_VoteBlock(t *testing.T) {
 func TestHsDriver_Commit(t *testing.T) {
 	hsd := setupTestHsDriver()
 	parent := core.NewBlock().SetHeight(10).Sign(hsd.resources.Signer)
-	batch := core.NewBatch().SetTransactions([][]byte{[]byte("txfromfolk")}).Sign(hsd.resources.Signer)
-	bfolk := core.NewBlock().SetBatchs([]*core.Batch{batch}).SetHeight(10).Sign(hsd.resources.Signer)
+	batch := core.NewBatch().Header().SetTransactions([][]byte{[]byte("txfromfolk")}).Sign(hsd.resources.Signer)
+	bfolk := core.NewBlock().SetBatchHeaders([]*core.BatchHeader{batch}).SetHeight(10).Sign(hsd.resources.Signer)
 
 	tx := core.NewTransaction().Sign(hsd.resources.Signer)
-	batch2 := core.NewBatch().SetTransactions([][]byte{tx.Hash()}).Sign(hsd.resources.Signer)
-	bexec := core.NewBlock().SetBatchs([]*core.Batch{batch2}).SetParentHash(parent.Hash()).SetHeight(11).Sign(hsd.resources.Signer)
+	batch2 := core.NewBatch().SetTransactions([]*core.Transaction{tx}).Header().Sign(hsd.resources.Signer)
+	bexec := core.NewBlock().SetBatchHeaders([]*core.BatchHeader{batch2}).SetParentHash(parent.Hash()).SetHeight(11).Sign(hsd.resources.Signer)
 	hsd.state.setBlock(parent)
 	hsd.state.setCommitedBlock(parent)
 	hsd.state.setBlock(bfolk)

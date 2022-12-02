@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/wooyang2018/ppov-blockchain/pb"
 )
 
@@ -23,17 +24,17 @@ func TestBlock(t *testing.T) {
 		}},
 	})
 
-	batch := NewBatch().SetTransactions([][]byte{{1}}).Sign(privKey)
-	sign := privKey.Sign(batch.Hash())
-	batchQC := NewBatchQuorumCert().Build(batch.Hash(), []*Signature{sign})
-	batch.SetBatchQuorumCert(batchQC)
+	batchHeader := NewBatch().Header().SetTransactions([][]byte{{1}}).Sign(privKey)
+	sign := privKey.Sign(batchHeader.Hash())
+	batchQC := NewBatchQuorumCert().Build(batchHeader.Hash(), []*Signature{sign})
+	batchHeader.SetBatchQuorumCert(batchQC)
 	blk := NewBlock().
 		SetHeight(4).
 		SetParentHash([]byte{1}).
 		SetExecHeight(0).
 		SetQuorumCert(qc).
 		SetMerkleRoot([]byte{1}).
-		SetBatchs([]*Batch{batch}).
+		SetBatchHeaders([]*BatchHeader{batchHeader}).
 		Sign(privKey)
 
 	assertt.Equal(uint64(4), blk.Height())

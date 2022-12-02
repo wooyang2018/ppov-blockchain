@@ -140,15 +140,15 @@ func (vld *validator) newViewLoop() {
 }
 
 func (vld *validator) onReceiveBatch(batch *core.Batch) error {
-	if err := batch.Validate(vld.resources.VldStore); err != nil {
+	if err := batch.Header().Validate(vld.resources.VldStore); err != nil {
 		return err
 	}
-	vld.voterState.addBatch(batch)
 	if err := vld.resources.TxPool.StoreTxs(batch.TxList()); err != nil {
 		return err
 	}
-	widx := vld.resources.VldStore.GetWorkerIndex(batch.Proposer())
-	logger.I().Debugf("received batch from worker %d", widx)
+	vld.voterState.addBatch(batch.Header())
+	widx := vld.resources.VldStore.GetWorkerIndex(batch.Header().Proposer())
+	logger.I().Debugw("received batch", "txs", len(batch.Header().Transactions()), "worker", widx)
 	if vld.state.isThisNodeVoter() && vld.voterState.hasEnoughBatch() {
 		signer := vld.resources.Signer
 		vote := core.NewBatchVote().Build(vld.voterState.popBatch(), signer)
@@ -165,9 +165,6 @@ func (vld *validator) onReceiveProposal(proposal *core.Block) error {
 	vld.mtxProposal.Lock()
 	defer vld.mtxProposal.Unlock()
 	if err := proposal.Validate(vld.resources.VldStore); err != nil {
-		return err
-	}
-	if err := vld.resources.TxPool.StoreTxs(proposal.TxList()); err != nil {
 		return err
 	}
 	pidx := vld.resources.VldStore.GetWorkerIndex(proposal.Proposer())

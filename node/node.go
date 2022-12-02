@@ -13,6 +13,8 @@ import (
 	"syscall"
 
 	"github.com/multiformats/go-multiaddr"
+	"go.uber.org/zap"
+
 	"github.com/wooyang2018/ppov-blockchain/consensus"
 	"github.com/wooyang2018/ppov-blockchain/core"
 	"github.com/wooyang2018/ppov-blockchain/execution"
@@ -20,7 +22,6 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/p2p"
 	"github.com/wooyang2018/ppov-blockchain/storage"
 	"github.com/wooyang2018/ppov-blockchain/txpool"
-	"go.uber.org/zap"
 )
 
 type Node struct {

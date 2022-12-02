@@ -11,10 +11,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/wooyang2018/ppov-blockchain/core"
 	"github.com/wooyang2018/ppov-blockchain/emitter"
+	"github.com/wooyang2018/ppov-blockchain/logger"
 	"github.com/wooyang2018/ppov-blockchain/pb"
-	"google.golang.org/protobuf/proto"
 )
 
 type MsgType byte
@@ -229,6 +231,7 @@ func (svc *MsgService) listenPeer(peer *Peer) {
 func (svc *MsgService) onReceiveBatch(peer *Peer, data []byte) {
 	batch := core.NewBatch()
 	if err := batch.Unmarshal(data); err != nil {
+		logger.I().Errorw("receive batch failed", "error", err)
 		return
 	}
 	svc.batchEmitter.Emit(batch)
@@ -237,6 +240,7 @@ func (svc *MsgService) onReceiveBatch(peer *Peer, data []byte) {
 func (svc *MsgService) onReceiveBatchVote(peer *Peer, data []byte) {
 	vote := core.NewBatchVote()
 	if err := vote.Unmarshal(data); err != nil {
+		logger.I().Errorw("receive batch vote failed", "error", err)
 		return
 	}
 	svc.batchVoteEmitter.Emit(vote)
@@ -245,6 +249,7 @@ func (svc *MsgService) onReceiveBatchVote(peer *Peer, data []byte) {
 func (svc *MsgService) onReceiveProposal(peer *Peer, data []byte) {
 	blk := core.NewBlock()
 	if err := blk.Unmarshal(data); err != nil {
+		logger.I().Errorw("receive proposal failed", "error", err)
 		return
 	}
 	svc.proposalEmitter.Emit(blk)
@@ -253,6 +258,7 @@ func (svc *MsgService) onReceiveProposal(peer *Peer, data []byte) {
 func (svc *MsgService) onReceiveVote(peer *Peer, data []byte) {
 	vote := core.NewVote()
 	if err := vote.Unmarshal(data); err != nil {
+		logger.I().Errorw("receive vote failed", "error", err)
 		return
 	}
 	svc.voteEmitter.Emit(vote)
@@ -261,6 +267,7 @@ func (svc *MsgService) onReceiveVote(peer *Peer, data []byte) {
 func (svc *MsgService) onReceiveNewView(peer *Peer, data []byte) {
 	qc := core.NewQuorumCert()
 	if err := qc.Unmarshal(data); err != nil {
+		logger.I().Errorw("receive new view failed", "error", err)
 		return
 	}
 	svc.newViewEmitter.Emit(qc)
@@ -269,6 +276,7 @@ func (svc *MsgService) onReceiveNewView(peer *Peer, data []byte) {
 func (svc *MsgService) onReceiveTxList(peer *Peer, data []byte) {
 	txList := core.NewTxList()
 	if err := txList.Unmarshal(data); err != nil {
+		logger.I().Errorw("receive tx list failed", "error", err)
 		return
 	}
 	svc.txListEmitter.Emit(txList)

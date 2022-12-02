@@ -44,7 +44,7 @@ func (hc *checker) getMaximumBexec(status map[int]*consensus.Status) uint64 {
 }
 
 func (hc *checker) getLivenessWaitTime() time.Duration {
-	d := 20 * time.Second
+	d := 30 * time.Second
 	if hc.majority {
 		d += time.Duration(hc.getFaultyCount()) * hc.LeaderTimeout()
 	}
