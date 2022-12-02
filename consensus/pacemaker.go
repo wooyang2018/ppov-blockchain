@@ -53,16 +53,16 @@ func (pm *pacemaker) batchRun() {
 
 	for {
 		pm.newBatch()
-		bacthT := pm.nextBatchTimeout()
+		batchT := pm.nextBatchTimeout()
 
 		select {
 		case <-pm.stopCh:
 			return
 
-		case <-bacthT.C:
+		case <-batchT.C:
 		case <-subQC.Events():
 		}
-		bacthT.Stop()
+		batchT.Stop()
 	}
 }
 

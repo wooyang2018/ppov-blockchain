@@ -19,7 +19,7 @@ import (
 
 type CommitData struct {
 	Block        *core.Block
-	QC           *core.QuorumCert // QC for commited block
+	QC           *core.QuorumCert // QC for committed block
 	Transactions []*core.Transaction
 	BlockCommit  *core.BlockCommit
 	TxCommits    []*core.TxCommit
@@ -167,7 +167,7 @@ func (strg *Storage) writeCommitData(data *CommitData) error {
 	if err := strg.writeStateMerkleTree(data); err != nil {
 		return err
 	}
-	return strg.setCommitedBlockHeight(data.Block.Height())
+	return strg.setCommittedBlockHeight(data.Block.Height())
 }
 
 func (strg *Storage) computeMerkleUpdate(data *CommitData) {
@@ -210,7 +210,7 @@ func (strg *Storage) writeStateMerkleTree(data *CommitData) error {
 	return updateBadgerDB(strg.db, updFns)
 }
 
-func (strg *Storage) setCommitedBlockHeight(height uint64) error {
+func (strg *Storage) setCommittedBlockHeight(height uint64) error {
 	updFn := strg.chainStore.setBlockHeight(height)
 	return updateBadgerDB(strg.db, []updateFunc{updFn})
 }

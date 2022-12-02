@@ -96,7 +96,7 @@ func main() {
 
 func setupTransport() {
 	// to make load test http client efficient
-	transport := (http.DefaultTransport.(*http.Transport))
+	transport := http.DefaultTransport.(*http.Transport)
 	transport.MaxIdleConns = 100
 	transport.MaxIdleConnsPerHost = 100
 }

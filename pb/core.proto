@@ -20,7 +20,7 @@ message Block {
 }
 
 message Batch{
-  BatchHeader header =1;
+  BatchHeader header = 1;
   repeated Transaction txList = 2; //transaction list
 }
 

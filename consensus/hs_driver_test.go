@@ -140,7 +140,7 @@ func TestHsDriver_Commit(t *testing.T) {
 	batch2 := core.NewBatch().SetTransactions([]*core.Transaction{tx}).Header().Sign(hsd.resources.Signer)
 	bexec := core.NewBlock().SetBatchHeaders([]*core.BatchHeader{batch2}).SetParentHash(parent.Hash()).SetHeight(11).Sign(hsd.resources.Signer)
 	hsd.state.setBlock(parent)
-	hsd.state.setCommitedBlock(parent)
+	hsd.state.setCommittedBlock(parent)
 	hsd.state.setBlock(bfolk)
 	hsd.state.setBlock(bexec)
 

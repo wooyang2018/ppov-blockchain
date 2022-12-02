@@ -12,7 +12,7 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/logger"
 )
 
-const IsBroadcastTx = true //是否广播交易
+const IsBroadcastTx = false //是否广播交易
 
 type Status struct {
 	Total   int `json:"total"`   //Total = len(txStore.txItems)
@@ -54,16 +54,16 @@ type TxPool struct {
 
 func New(storage Storage, execution Execution, msgSvc MsgService) *TxPool {
 	pool := &TxPool{
-		storage:     storage,
-		execution:   execution,
-		msgSvc:      msgSvc,
-		store:       newTxStore(),
-		broadcaster: newBroadcaster(msgSvc),
+		storage:   storage,
+		execution: execution,
+		msgSvc:    msgSvc,
+		store:     newTxStore(),
 	}
 	if IsBroadcastTx {
+		pool.broadcaster = newBroadcaster(msgSvc)
 		go pool.broadcaster.run() //运行交易广播器
+		go pool.subscribeTxs()
 	}
-	go pool.subscribeTxs()
 	return pool
 }
 
@@ -76,7 +76,7 @@ func (pool *TxPool) SyncTxs(peer *core.PublicKey, hashes [][]byte) error {
 }
 
 func (pool *TxPool) StoreTxs(txs *core.TxList) error {
-	return pool.storeTxs(txs)
+	return pool.addTxList(txs)
 }
 
 func (pool *TxPool) PopTxsFromQueue(max int) []*core.Transaction {
@@ -115,7 +115,9 @@ func (pool *TxPool) submitTx(tx *core.Transaction) error {
 	if err := pool.addNewTx(tx); err != nil {
 		return err
 	}
-	pool.broadcaster.queue <- tx
+	if IsBroadcastTx {
+		pool.broadcaster.queue <- tx
+	}
 	return nil
 }
 
@@ -197,20 +199,6 @@ func (pool *TxPool) requestTxList(peer *core.PublicKey, hashes [][]byte) (*core.
 		}
 	}
 	return txList, nil
-}
-
-func (pool *TxPool) storeTxs(txs *core.TxList) error {
-	missing := make([]*core.Transaction, 0)
-	for _, tx := range *txs {
-		if !pool.storage.HasTx(tx.Hash()) && pool.store.getTx(tx.Hash()) == nil {
-			missing = append(missing, tx)
-		}
-	}
-	if len(missing) == 0 {
-		return nil
-	}
-	txList := core.TxList(missing)
-	return pool.addTxList(&txList)
 }
 
 func (pool *TxPool) getTxsToExecute(hashes [][]byte) ([]*core.Transaction, [][]byte) {

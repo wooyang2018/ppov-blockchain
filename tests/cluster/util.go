@@ -96,19 +96,22 @@ func SetupTemplateDir(dir string, keys []*core.PrivateKey, vlds []node.Peer) err
 		Voters:  make([]string, 0, 0),
 		Weights: make([]int, 0, 0),
 	}
-	for i, v := range keys {
-		if i%3 == 0 {
-			genesis.Workers = append(genesis.Workers, v.PublicKey().String())
-			genesis.Weights = append(genesis.Weights, 1)
-			genesis.Voters = append(genesis.Voters, v.PublicKey().String())
-		}
-		if i%3 == 1 {
-			genesis.Workers = append(genesis.Workers, v.PublicKey().String())
-			genesis.Weights = append(genesis.Weights, 1)
-		}
-		if i%3 == 2 {
-			genesis.Voters = append(genesis.Voters, v.PublicKey().String())
-		}
+	for _, v := range keys {
+		genesis.Workers = append(genesis.Workers, v.PublicKey().String())
+		genesis.Weights = append(genesis.Weights, 1)
+		genesis.Voters = append(genesis.Voters, v.PublicKey().String())
+		//if i%3 == 0 {
+		//	genesis.Workers = append(genesis.Workers, v.PublicKey().String())
+		//	genesis.Weights = append(genesis.Weights, 1)
+		//	genesis.Voters = append(genesis.Voters, v.PublicKey().String())
+		//}
+		//if i%3 == 1 {
+		//	genesis.Workers = append(genesis.Workers, v.PublicKey().String())
+		//	genesis.Weights = append(genesis.Weights, 1)
+		//}
+		//if i%3 == 2 {
+		//	genesis.Voters = append(genesis.Voters, v.PublicKey().String())
+		//}
 	}
 	for i, key := range keys {
 		dir := path.Join(dir, strconv.Itoa(i))
