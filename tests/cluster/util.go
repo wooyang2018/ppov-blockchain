@@ -20,8 +20,8 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/node"
 )
 
-const WorkerProportion float32 = 1
-const VoterProportion float32 = 0.7
+const WorkerProportion float32 = 0.5
+const VoterProportion float32 = 0.6
 
 func ReadRemoteHosts(hostsPath string, nodeCount int) ([]string, error) {
 	raw, err := os.ReadFile(hostsPath)
@@ -218,4 +218,10 @@ func GetUnselectedIndexes(total int, selected []int) []int {
 		}
 	}
 	return ret
+}
+
+// Sleep print duration and call time.Sleep
+func Sleep(d time.Duration) {
+	fmt.Printf("Wait for %s\n", d)
+	time.Sleep(d)
 }

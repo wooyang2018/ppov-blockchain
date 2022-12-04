@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/wooyang2018/ppov-blockchain/tests/cluster"
-	"github.com/wooyang2018/ppov-blockchain/tests/testutil"
 )
 
 type RestartCluster struct{}
@@ -20,12 +19,12 @@ func (expm *RestartCluster) Name() string {
 func (expm *RestartCluster) Run(cls *cluster.Cluster) error {
 	cls.Stop()
 	fmt.Println("Stopped cluster")
-	testutil.Sleep(10 * time.Second)
+	cluster.Sleep(10 * time.Second)
 
 	if err := cls.Start(); err != nil {
 		return err
 	}
 	fmt.Println("Restarted cluster")
-	testutil.Sleep(20 * time.Second)
+	cluster.Sleep(20 * time.Second)
 	return nil
 }

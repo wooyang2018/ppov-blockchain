@@ -10,7 +10,6 @@ import (
 
 	"github.com/wooyang2018/ppov-blockchain/tests/cluster"
 	"github.com/wooyang2018/ppov-blockchain/tests/health"
-	"github.com/wooyang2018/ppov-blockchain/tests/testutil"
 )
 
 type NetworkDelay struct {
@@ -33,13 +32,13 @@ func (expm *NetworkDelay) Run(cls *cluster.Cluster) error {
 	defer cls.RemoveEffects()
 
 	fmt.Printf("Added delay %v\n", effects)
-	testutil.Sleep(20 * time.Second)
+	cluster.Sleep(20 * time.Second)
 	if err := health.CheckMajorityNodes(cls); err != nil {
 		return err
 	}
 
 	cls.RemoveEffects()
 	fmt.Println("Removed effects")
-	testutil.Sleep(10 * time.Second)
+	cluster.Sleep(10 * time.Second)
 	return nil
 }

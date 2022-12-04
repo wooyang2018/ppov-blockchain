@@ -10,7 +10,6 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/core"
 	"github.com/wooyang2018/ppov-blockchain/tests/cluster"
 	"github.com/wooyang2018/ppov-blockchain/tests/health"
-	"github.com/wooyang2018/ppov-blockchain/tests/testutil"
 )
 
 type MajorityKeepRunning struct{}
@@ -30,7 +29,7 @@ func (expm *MajorityKeepRunning) Run(cls *cluster.Cluster) error {
 	}
 	fmt.Printf("Stopped %d out of %d nodes: %v\n", len(faulty), total, faulty)
 
-	testutil.Sleep(10 * time.Second)
+	cluster.Sleep(10 * time.Second)
 	if err := health.CheckMajorityNodes(cls); err != nil {
 		return err
 	}
@@ -41,6 +40,6 @@ func (expm *MajorityKeepRunning) Run(cls *cluster.Cluster) error {
 	}
 	fmt.Printf("Started nodes: %v\n", faulty)
 	// stopped nodes should sync with the majority after some duration
-	testutil.Sleep(30 * time.Second)
+	cluster.Sleep(30 * time.Second)
 	return nil
 }
