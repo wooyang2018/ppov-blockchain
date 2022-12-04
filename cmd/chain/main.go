@@ -13,26 +13,28 @@ import (
 
 const (
 	FlagDebug   = "debug"
-	FlagDataDir = "datadir"
+	FlagDataDir = "dataDir"
 
 	FlagPort    = "port"
 	FlagAPIPort = "apiPort"
 
+	FlagBroadcastTx = "broadcast-tx"
+
 	// storage
-	FlagMerkleBranchFactor = "storage-merkleBranchFactor"
+	FlagMerkleBranchFactor = "storage-merkle-branch-factor"
 
 	// execution
-	FlagTxExecTimeout       = "execution-txExecTimeout"
-	FlagExecConcurrentLimit = "execution-concurrentLimit"
+	FlagTxExecTimeout       = "execution-tx-exec-timeout"
+	FlagExecConcurrentLimit = "execution-concurrent-limit"
 
 	// consensus
-	FlagChainID        = "chainid"
-	FlagBlockTxLimit   = "consensus-blockTxLimit"
-	FlagTxWaitTime     = "consensus-txWaitTime"
-	FlagProposeTimeout = "consensus-proposeTimeout"
-	FlagBlockDelay     = "consensus-blockDelay"
-	FlagViewWidth      = "consensus-viewWidth"
-	FlagLeaderTimeout  = "consensus-leaderTimeout"
+	FlagChainID        = "chainID"
+	FlagBlockTxLimit   = "consensus-block-tx-limit"
+	FlagTxWaitTime     = "consensus-tx-wait-time"
+	FlagProposeTimeout = "consensus-propose-timeout"
+	FlagBlockDelay     = "consensus-block-delay"
+	FlagViewWidth      = "consensus-view-width"
+	FlagLeaderTimeout  = "consensus-leader-timeout"
 )
 
 var nodeConfig = node.DefaultConfig
@@ -65,6 +67,9 @@ func init() {
 
 	rootCmd.Flags().IntVarP(&nodeConfig.APIPort,
 		FlagAPIPort, "P", nodeConfig.APIPort, "node api port")
+
+	rootCmd.Flags().BoolVar(&nodeConfig.BroadcastTx,
+		FlagBroadcastTx, false, "whether to broadcast transaction")
 
 	rootCmd.Flags().Uint8Var(&nodeConfig.StorageConfig.MerkleBranchFactor,
 		FlagMerkleBranchFactor, nodeConfig.StorageConfig.MerkleBranchFactor,

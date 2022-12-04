@@ -64,7 +64,7 @@ func SubmitTx(cls *cluster.Cluster, tx *core.Transaction) (int, error) {
 		return 0, err
 	}
 	var retErr error
-	retryOrder := PickUniqueRandoms(cls.NodeCount(), cls.NodeCount())
+	retryOrder := cluster.PickUniqueRandoms(cls.NodeCount(), cls.NodeCount())
 	for _, i := range retryOrder {
 		if !cls.GetNode(i).IsRunning() {
 			continue
@@ -116,7 +116,7 @@ func uploadBinChainCode(cls *cluster.Cluster, binccPath string) (int, []byte, er
 		return 0, nil, err
 	}
 	var retErr error
-	retryOrder := PickUniqueRandoms(cls.NodeCount(), cls.NodeCount())
+	retryOrder := cluster.PickUniqueRandoms(cls.NodeCount(), cls.NodeCount())
 	for _, i := range retryOrder {
 		if !cls.GetNode(i).IsRunning() {
 			continue

@@ -12,8 +12,6 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/logger"
 )
 
-const IsBroadcastTx = false //是否广播交易
-
 type Status struct {
 	Total   int `json:"total"`   //Total = len(txStore.txItems)
 	Pending int `json:"pending"` //Pending = Total-Queue
@@ -44,22 +42,23 @@ const (
 )
 
 type TxPool struct {
-	storage   Storage    //存储服务
-	execution Execution  //交易执行服务
-	msgSvc    MsgService //通信服务
-
-	store       *txStore //交易缓存
-	broadcaster *broadcaster
+	storage     Storage      //存储服务
+	execution   Execution    //交易执行服务
+	msgSvc      MsgService   //通信服务
+	store       *txStore     //交易缓存
+	broadcaster *broadcaster //交易广播器
+	broadcastTx bool         //是否广播交易
 }
 
-func New(storage Storage, execution Execution, msgSvc MsgService) *TxPool {
+func New(storage Storage, execution Execution, msgSvc MsgService, broadcastTx bool) *TxPool {
 	pool := &TxPool{
-		storage:   storage,
-		execution: execution,
-		msgSvc:    msgSvc,
-		store:     newTxStore(),
+		storage:     storage,
+		execution:   execution,
+		msgSvc:      msgSvc,
+		store:       newTxStore(),
+		broadcastTx: broadcastTx,
 	}
-	if IsBroadcastTx {
+	if pool.broadcastTx {
 		pool.broadcaster = newBroadcaster(msgSvc)
 		go pool.broadcaster.run() //运行交易广播器
 		go pool.subscribeTxs()
@@ -115,7 +114,7 @@ func (pool *TxPool) submitTx(tx *core.Transaction) error {
 	if err := pool.addNewTx(tx); err != nil {
 		return err
 	}
-	if IsBroadcastTx {
+	if pool.broadcastTx {
 		pool.broadcaster.queue <- tx
 	}
 	return nil

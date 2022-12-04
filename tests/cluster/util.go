@@ -6,17 +6,22 @@ package cluster
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/multiformats/go-multiaddr"
 
 	"github.com/wooyang2018/ppov-blockchain/core"
 	"github.com/wooyang2018/ppov-blockchain/node"
 )
+
+const WorkerProportion float32 = 1
+const VoterProportion float32 = 0.7
 
 func ReadRemoteHosts(hostsPath string, nodeCount int) ([]string, error) {
 	raw, err := os.ReadFile(hostsPath)
@@ -96,23 +101,34 @@ func SetupTemplateDir(dir string, keys []*core.PrivateKey, vlds []node.Peer) err
 		Voters:  make([]string, 0, 0),
 		Weights: make([]int, 0, 0),
 	}
-	for _, v := range keys {
-		genesis.Workers = append(genesis.Workers, v.PublicKey().String())
+
+	workers := PickUniqueRandoms(len(keys), int(float32(len(keys))*WorkerProportion))
+	fmt.Printf("Setup workers: %v\n", workers)
+	for _, v := range workers {
+		genesis.Workers = append(genesis.Workers, keys[v].PublicKey().String())
 		genesis.Weights = append(genesis.Weights, 1)
-		genesis.Voters = append(genesis.Voters, v.PublicKey().String())
-		//if i%3 == 0 {
-		//	genesis.Workers = append(genesis.Workers, v.PublicKey().String())
-		//	genesis.Weights = append(genesis.Weights, 1)
-		//	genesis.Voters = append(genesis.Voters, v.PublicKey().String())
-		//}
-		//if i%3 == 1 {
-		//	genesis.Workers = append(genesis.Workers, v.PublicKey().String())
-		//	genesis.Weights = append(genesis.Weights, 1)
-		//}
-		//if i%3 == 2 {
-		//	genesis.Voters = append(genesis.Voters, v.PublicKey().String())
-		//}
 	}
+
+	// Ensure that the node is either a Worker or a Voter
+	var voters []int
+	unselectedIndexes := GetUnselectedIndexes(len(keys), workers)
+	if len(unselectedIndexes) <= int(float32(len(keys))*VoterProportion) {
+		voters = append(voters, unselectedIndexes...)
+		indexes := PickUniqueRandoms(len(workers), int(float32(len(keys))*VoterProportion)-len(unselectedIndexes))
+		for _, v := range indexes {
+			voters = append(voters, workers[v])
+		}
+	} else {
+		indexes := PickUniqueRandoms(len(unselectedIndexes), int(float32(len(keys))*VoterProportion))
+		for _, v := range indexes {
+			voters = append(voters, unselectedIndexes[v])
+		}
+	}
+	fmt.Printf("Setup voters: %v\n", voters)
+	for _, v := range voters {
+		genesis.Voters = append(genesis.Voters, keys[v].PublicKey().String())
+	}
+
 	for i, key := range keys {
 		dir := path.Join(dir, strconv.Itoa(i))
 		os.Mkdir(dir, 0755)
@@ -139,35 +155,67 @@ func AddJuriaFlags(cmd *exec.Cmd, config *node.Config) {
 	cmd.Args = append(cmd.Args, "-d", config.Datadir)
 	cmd.Args = append(cmd.Args, "-p", strconv.Itoa(config.Port))
 	cmd.Args = append(cmd.Args, "-P", strconv.Itoa(config.APIPort))
-	cmd.Args = append(cmd.Args, "--debug", strconv.FormatBool(config.Debug))
+	if config.Debug {
+		cmd.Args = append(cmd.Args, "--debug")
+	}
+	if config.BroadcastTx {
+		cmd.Args = append(cmd.Args, "--broadcast-tx")
+	}
 
-	cmd.Args = append(cmd.Args, "--storage-merkleBranchFactor",
+	cmd.Args = append(cmd.Args, "--storage-merkle-branch-factor",
 		strconv.Itoa(int(config.StorageConfig.MerkleBranchFactor)))
 
-	cmd.Args = append(cmd.Args, "--execution-txExecTimeout",
+	cmd.Args = append(cmd.Args, "--execution-tx-exec-timeout",
 		config.ExecutionConfig.TxExecTimeout.String(),
 	)
-	cmd.Args = append(cmd.Args, "--execution-concurrentLimit",
+	cmd.Args = append(cmd.Args, "--execution-concurrent-limit",
 		strconv.Itoa(config.ExecutionConfig.ConcurrentLimit))
 
-	cmd.Args = append(cmd.Args, "--chainid",
+	cmd.Args = append(cmd.Args, "--chainID",
 		strconv.Itoa(int(config.ConsensusConfig.ChainID)))
 
-	cmd.Args = append(cmd.Args, "--consensus-blockTxLimit",
+	cmd.Args = append(cmd.Args, "--consensus-block-tx-limit",
 		strconv.Itoa(config.ConsensusConfig.BatchTxLimit))
 
-	cmd.Args = append(cmd.Args, "--consensus-txWaitTime",
+	cmd.Args = append(cmd.Args, "--consensus-tx-wait-time",
 		config.ConsensusConfig.TxWaitTime.String())
 
-	cmd.Args = append(cmd.Args, "--consensus-proposeTimeout",
+	cmd.Args = append(cmd.Args, "--consensus-propose-timeout",
 		config.ConsensusConfig.ProposeTimeout.String())
 
-	cmd.Args = append(cmd.Args, "--consensus-blockDelay",
+	cmd.Args = append(cmd.Args, "--consensus-block-delay",
 		config.ConsensusConfig.BlockDelay.String())
 
-	cmd.Args = append(cmd.Args, "--consensus-viewWidth",
+	cmd.Args = append(cmd.Args, "--consensus-view-width",
 		config.ConsensusConfig.ViewWidth.String())
 
-	cmd.Args = append(cmd.Args, "--consensus-leaderTimeout",
+	cmd.Args = append(cmd.Args, "--consensus-leader-timeout",
 		config.ConsensusConfig.LeaderTimeout.String())
+}
+
+func PickUniqueRandoms(total, count int) []int {
+	rand.Seed(time.Now().Unix())
+	unique := make(map[int]struct{}, count)
+	for len(unique) < count {
+		unique[rand.Intn(total)] = struct{}{}
+	}
+	ret := make([]int, 0, count)
+	for v := range unique {
+		ret = append(ret, v)
+	}
+	return ret
+}
+
+func GetUnselectedIndexes(total int, selected []int) []int {
+	smap := make(map[int]struct{}, len(selected))
+	for _, idx := range selected {
+		smap[idx] = struct{}{}
+	}
+	ret := make([]int, 0, total-len(selected))
+	for i := 0; i < total; i++ {
+		if _, found := smap[i]; !found {
+			ret = append(ret, i)
+		}
+	}
+	return ret
 }
