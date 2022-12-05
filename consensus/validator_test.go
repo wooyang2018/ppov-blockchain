@@ -74,37 +74,37 @@ func TestValidator_verifyProposalToVote(t *testing.T) {
 	}{
 		{"valid", true, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch1}).
+			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
 			Sign(priv1),
 		},
 		{"proposer is not leader", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch1}).
+			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
 			Sign(priv0),
 		},
 		{"different exec height", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(9).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch1}).
+			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
 			Sign(priv1),
 		},
 		{"different merkle root", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot([]byte("different")).
-			SetBatchHeaders([]*core.BatchHeader{batch1}).
+			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
 			Sign(priv1),
 		},
 		{"committed tx", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch2}).
+			SetBatchHeaders([]*core.BatchHeader{batch2}, true).
 			Sign(priv1),
 		},
 		{"expired tx", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch3}).
+			SetBatchHeaders([]*core.BatchHeader{batch3}, true).
 			Sign(priv1),
 		},
 		{"not found tx", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch4}).
+			SetBatchHeaders([]*core.BatchHeader{batch4}, true).
 			Sign(priv1),
 		},
 	}

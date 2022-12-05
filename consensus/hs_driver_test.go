@@ -58,7 +58,10 @@ func TestHsDriver_CreateLeaf(t *testing.T) {
 	signer := core.GenerateKey(nil)
 	hsd.resources.VldStore = core.NewValidatorStore([]string{signer.PublicKey().String()}, []int{1}, []string{signer.PublicKey().String()})
 
-	txsInQ := [][]byte{[]byte("tx1"), []byte("tx2")}
+	tx1, tx2 := []byte("tx1"), []byte("tx2")
+	txsInQ := [][]byte{tx1, tx2}
+	storage.On("HasTx", tx1).Return(false)
+	storage.On("HasTx", tx2).Return(false)
 
 	hsd.leaderState = newLeaderState().setBatchWaitTime(3 * time.Second).setBatchSignLimit(1).setBlockBatchLimit(1)
 	batch := core.NewBatch().Header().SetTransactions(txsInQ).Sign(signer)
@@ -134,11 +137,11 @@ func TestHsDriver_Commit(t *testing.T) {
 	hsd := setupTestHsDriver()
 	parent := core.NewBlock().SetHeight(10).Sign(hsd.resources.Signer)
 	batch := core.NewBatch().Header().SetTransactions([][]byte{[]byte("txfromfolk")}).Sign(hsd.resources.Signer)
-	bfolk := core.NewBlock().SetBatchHeaders([]*core.BatchHeader{batch}).SetHeight(10).Sign(hsd.resources.Signer)
+	bfolk := core.NewBlock().SetBatchHeaders([]*core.BatchHeader{batch}, true).SetHeight(10).Sign(hsd.resources.Signer)
 
 	tx := core.NewTransaction().Sign(hsd.resources.Signer)
 	batch2 := core.NewBatch().SetTransactions([]*core.Transaction{tx}).Header().Sign(hsd.resources.Signer)
-	bexec := core.NewBlock().SetBatchHeaders([]*core.BatchHeader{batch2}).SetParentHash(parent.Hash()).SetHeight(11).Sign(hsd.resources.Signer)
+	bexec := core.NewBlock().SetBatchHeaders([]*core.BatchHeader{batch2}, true).SetParentHash(parent.Hash()).SetHeight(11).Sign(hsd.resources.Signer)
 	hsd.state.setBlock(parent)
 	hsd.state.setCommittedBlock(parent)
 	hsd.state.setBlock(bfolk)

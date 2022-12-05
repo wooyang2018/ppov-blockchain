@@ -45,7 +45,7 @@ var DefaultConfig = Config{
 	TxWaitTime:      1 * time.Second,
 	BatchWaitTime:   3 * time.Second,
 	ProposeTimeout:  500 * time.Millisecond,
-	BatchTimeout:    50 * time.Millisecond,
+	BatchTimeout:    400 * time.Millisecond,
 	BlockDelay:      40 * time.Millisecond, // maximum block rate = 25 blk per sec
 	ViewWidth:       90 * time.Second,
 	LeaderTimeout:   30 * time.Second,

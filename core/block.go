@@ -167,12 +167,25 @@ func (blk *Block) SetTimestamp(val int64) *Block {
 	return blk
 }
 
-func (blk *Block) SetBatchHeaders(val []*BatchHeader) *Block {
+func (blk *Block) SetBatchHeaders(val []*BatchHeader, isSetTx bool) *Block {
 	blk.data.BatchHeaders = make([]*pb.BatchHeader, len(val))
 	blk.headers = make([]*BatchHeader, len(val))
 	for index := range val {
 		blk.headers[index] = val[index]
 		blk.data.BatchHeaders[index] = val[index].data
+	}
+	if isSetTx {
+		txSet := make(map[string]struct{})
+		txs := make([][]byte, 0)
+		for _, batch := range val {
+			for _, hash := range batch.Transactions() {
+				if _, ok := txSet[string(hash)]; !ok {
+					txSet[string(hash)] = struct{}{} //集合去重
+					txs = append(txs, hash)
+				}
+			}
+		}
+		blk.data.Transactions = txs
 	}
 	return blk
 }

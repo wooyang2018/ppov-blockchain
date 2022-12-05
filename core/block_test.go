@@ -34,7 +34,7 @@ func TestBlock(t *testing.T) {
 		SetExecHeight(0).
 		SetQuorumCert(qc).
 		SetMerkleRoot([]byte{1}).
-		SetBatchHeaders([]*BatchHeader{batchHeader}).
+		SetBatchHeaders([]*BatchHeader{batchHeader}, true).
 		Sign(privKey)
 
 	assertt.Equal(uint64(4), blk.Height())

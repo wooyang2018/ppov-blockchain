@@ -20,8 +20,8 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/node"
 )
 
-const WorkerProportion float32 = 0.5
-const VoterProportion float32 = 0.6
+const WorkerProportion float32 = 1
+const VoterProportion float32 = 0.8
 
 func ReadRemoteHosts(hostsPath string, nodeCount int) ([]string, error) {
 	raw, err := os.ReadFile(hostsPath)
@@ -151,7 +151,7 @@ func RunCommand(cmd *exec.Cmd) error {
 	return cmd.Run()
 }
 
-func AddJuriaFlags(cmd *exec.Cmd, config *node.Config) {
+func AddPPoVFlags(cmd *exec.Cmd, config *node.Config) {
 	cmd.Args = append(cmd.Args, "-d", config.Datadir)
 	cmd.Args = append(cmd.Args, "-p", strconv.Itoa(config.Port))
 	cmd.Args = append(cmd.Args, "-P", strconv.Itoa(config.APIPort))

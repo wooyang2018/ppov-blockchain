@@ -38,7 +38,7 @@ func (hsd *hsDriver) CreateLeaf(parent hotstuff.Block, qc hotstuff.QC, height ui
 		SetParentHash(parent.(*hsBlock).block.Hash()).
 		SetQuorumCert(qc.(*hsQC).qc).
 		SetHeight(height).
-		SetBatchHeaders(batchHeaders).
+		SetBatchHeaders(batchHeaders, false).
 		SetTransactions(txs).
 		SetExecHeight(hsd.resources.Storage.GetBlockHeight()).
 		SetMerkleRoot(hsd.resources.Storage.GetMerkleRoot()).

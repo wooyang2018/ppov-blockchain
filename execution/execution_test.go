@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/wooyang2018/ppov-blockchain/chaincode/ppovcoin"
 	"github.com/wooyang2018/ppov-blockchain/core"
 )
 
@@ -55,43 +56,43 @@ func TestExecution(t *testing.T) {
 	assert.EqualValues(3, len(txcs))
 	assert.NotEmpty(bcm.StateChanges())
 
-	// assert.Equal(tx1.Hash(), txcs[0].Hash())
-	// assert.Equal(tx2.Hash(), txcs[1].Hash())
-	// assert.Equal(tx3.Hash(), txcs[2].Hash())
+	assert.Equal(tx1.Hash(), txcs[0].Hash())
+	assert.Equal(tx2.Hash(), txcs[1].Hash())
+	assert.Equal(tx3.Hash(), txcs[2].Hash())
 
-	// for _, sc := range bcm.StateChanges() {
-	// 	state.SetState(sc.Key(), sc.Value())
-	// }
+	for _, sc := range bcm.StateChanges() {
+		state.SetState(sc.Key(), sc.Value())
+	}
 
-	// regTrk := newStateTracker(state, codeRegistryAddr)
-	// resci, err := reg.getCodeInfo(tx1.Hash(), regTrk)
+	regTrk := newStateTracker(state, codeRegistryAddr)
+	resci, err := reg.getCodeInfo(tx1.Hash(), regTrk)
 
-	// assert.NoError(err)
-	// assert.Equal(&cinfo, resci)
+	assert.NoError(err)
+	assert.Equal(&cinfo, resci)
 
-	// resci, err = reg.getCodeInfo(tx2.Hash(), regTrk)
+	resci, err = reg.getCodeInfo(tx2.Hash(), regTrk)
 
-	// assert.Error(err)
-	// assert.Nil(resci)
+	assert.Error(err)
+	assert.Nil(resci)
 
-	// resci, err = reg.getCodeInfo(tx3.Hash(), regTrk)
+	resci, err = reg.getCodeInfo(tx3.Hash(), regTrk)
 
-	// assert.NoError(err)
-	// assert.Equal(&cinfo, resci)
+	assert.NoError(err)
+	assert.Equal(&cinfo, resci)
 
-	// ccInput, _ := json.Marshal(juriacoin.Input{Method: "minter"})
-	// minter, err := execution.Query(&QueryData{tx1.Hash(), ccInput})
+	ccInput, _ := json.Marshal(ppovcoin.Input{Method: "minter"})
+	minter, err := execution.Query(&QueryData{tx1.Hash(), ccInput})
 
-	// assert.NoError(err)
-	// assert.Equal(priv.PublicKey().Bytes(), minter)
+	assert.NoError(err)
+	assert.Equal(priv.PublicKey().Bytes(), minter)
 
-	// minter, err = execution.Query(&QueryData{tx2.Hash(), ccInput})
+	minter, err = execution.Query(&QueryData{tx2.Hash(), ccInput})
 
-	// assert.Error(err)
-	// assert.Nil(minter)
+	assert.Error(err)
+	assert.Nil(minter)
 
-	// minter, err = execution.Query(&QueryData{tx3.Hash(), ccInput})
+	minter, err = execution.Query(&QueryData{tx3.Hash(), ccInput})
 
-	// assert.NoError(err)
-	// assert.Equal(priv.PublicKey().Bytes(), minter)
+	assert.NoError(err)
+	assert.Equal(priv.PublicKey().Bytes(), minter)
 }

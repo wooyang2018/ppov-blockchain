@@ -80,7 +80,7 @@ func (bm *Benchmark) runWithLoad(tps int) error {
 	bm.loadGen = testutil.NewLoadGenerator(tps, bm.loadClient)
 	bm.benchmarkName = fmt.Sprintf("bench_n_%d_load_%d",
 		bm.cfactory.GetParams().NodeCount, tps)
-	if JuriaCoinBinCC {
+	if PPoVCoinBinCC {
 		bm.benchmarkName += "bincc"
 	}
 
