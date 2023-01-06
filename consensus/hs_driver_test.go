@@ -68,6 +68,10 @@ func TestHsDriver_CreateLeaf(t *testing.T) {
 	batchVote := core.NewBatchVote().Build([]*core.BatchHeader{batch}, signer)
 	hsd.leaderState.addBatchVote(batchVote)
 
+	txpool := new(MockTxPool)
+	txpool.On("SyncTxs", batch.Proposer(), batch.Transactions()).Return(nil)
+	hsd.resources.TxPool = txpool
+
 	leaf := hsd.CreateLeaf(parent, qc, height)
 
 	storage.AssertExpectations(t)
@@ -90,7 +94,7 @@ func TestHsDriver_CreateLeaf(t *testing.T) {
 func TestHsDriver_VoteBlock(t *testing.T) {
 	hsd := setupTestHsDriver()
 	hsd.checkTxDelay = time.Millisecond
-	hsd.config.TxWaitTime = 2 * time.Millisecond
+	hsd.config.TxWaitTime = 20 * time.Millisecond
 
 	proposer := core.GenerateKey(nil)
 	blk := core.NewBlock().Sign(proposer)

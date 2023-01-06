@@ -32,7 +32,7 @@ func (hsd *hsDriver) MajorityValidatorCount() int {
 
 func (hsd *hsDriver) CreateLeaf(parent hotstuff.Block, qc hotstuff.QC, height uint64) hotstuff.Block {
 	batchHeaders := hsd.leaderState.popReadyBatch()
-	txs := hsd.getBatchTxs(batchHeaders)
+	txs := hsd.extractBatchTxs(batchHeaders)
 	//core.Block的链式调用
 	blk := core.NewBlock().
 		SetParentHash(parent.(*hsBlock).block.Hash()).
@@ -50,7 +50,12 @@ func (hsd *hsDriver) CreateLeaf(parent hotstuff.Block, qc hotstuff.QC, height ui
 	return newHsBlock(blk, hsd.state)
 }
 
-func (hsd *hsDriver) getBatchTxs(val []*core.BatchHeader) [][]byte {
+func (hsd *hsDriver) extractBatchTxs(val []*core.BatchHeader) [][]byte {
+	for _, batch := range val {
+		if err := hsd.resources.TxPool.SyncTxs(batch.Proposer(), batch.Transactions()); err != nil {
+			logger.I().Errorw("sync txs failed", "error", err)
+		}
+	}
 	txSet := make(map[string]struct{})
 	txs := make([][]byte, 0)
 	for _, batch := range val {
