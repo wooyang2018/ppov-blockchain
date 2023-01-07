@@ -111,7 +111,7 @@ func (l *leaderState) addBatchVote(vote *core.BatchVote) {
 			l.batchMap[hash] = batch
 			l.batchSigns[hash] = make([]*core.Signature, 0)
 			l.batchStopCh[hash] = make(chan struct{})
-			go l.waitCleanBatch(hash, time.NewTimer(l.batchWaitTime), l.batchStopCh[hash])
+			go l.waitCleanState(hash, time.NewTimer(l.batchWaitTime), l.batchStopCh[hash])
 		}
 		l.batchSigns[hash] = append(l.batchSigns[hash], sig)
 		if len(l.batchSigns[hash]) >= l.batchSignLimit {
@@ -126,8 +126,8 @@ func (l *leaderState) addBatchVote(vote *core.BatchVote) {
 	}
 }
 
-// popReadyBatch 从就绪队列的头部弹出num个Batch
-func (l *leaderState) popReadyBatch() []*core.BatchHeader {
+// popReadyHeaders 从就绪队列的头部弹出num个Batch
+func (l *leaderState) popReadyHeaders() []*core.BatchHeader {
 	l.mtxState.Lock()
 	defer l.mtxState.Unlock()
 
@@ -144,7 +144,7 @@ func (l *leaderState) popReadyBatch() []*core.BatchHeader {
 	return res
 }
 
-func (l *leaderState) waitCleanBatch(hash string, timer *time.Timer, stopCh chan struct{}) {
+func (l *leaderState) waitCleanState(hash string, timer *time.Timer, stopCh chan struct{}) {
 	select {
 	case <-timer.C:
 		l.mtxState.Lock()

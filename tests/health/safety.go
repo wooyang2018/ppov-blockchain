@@ -51,13 +51,13 @@ func (hc *checker) getLivenessWaitTime() time.Duration {
 	return d
 }
 
-func (hc *checker) shouldCommitNewBlocks(sMap map[int]*consensus.Status, lastHeight uint64) error {
+func (hc *checker) shouldCommitNewBlocks(status map[int]*consensus.Status, lastHeight uint64) error {
 	validCount := 0
 	blkCount := 0
-	for _, status := range sMap {
-		if status.BExec > lastHeight {
+	for _, s := range status {
+		if s.BExec > lastHeight {
 			if blkCount == 0 {
-				blkCount = int(status.BExec - lastHeight)
+				blkCount = int(s.BExec - lastHeight)
 			}
 			validCount++
 		}

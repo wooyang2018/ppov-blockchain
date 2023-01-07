@@ -1,12 +1,9 @@
-// Copyright (C) 2021 Aung Maw
-// Licensed under the GNU General Public License v3.0
-
 package storage
 
 import (
 	"bytes"
 
-	"github.com/dgraph-io/badger/v3"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // data collection prefixes for different data collections
@@ -26,11 +23,6 @@ const (
 	colMerkleNodeByPosition                  // tree node value by position
 )
 
-func NewDB(path string) (*badger.DB, error) {
-	return badger.Open(badger.DefaultOptions(path))
-}
-
-// setter badger.Txn实现该接口
 type setter interface {
 	Set(key, value []byte) error
 }
@@ -42,40 +34,34 @@ type getter interface {
 	HasKey(key []byte) bool
 }
 
-// badgerGetter 基于badger.DB实现getter
-type badgerGetter struct {
-	db *badger.DB
+func NewLevelDB(path string) (*leveldb.DB, error) {
+	return leveldb.OpenFile(path, nil)
 }
 
-func (bg *badgerGetter) Get(key []byte) ([]byte, error) {
-	var val []byte
-	err := bg.db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get(key)
-		if err == nil {
-			val, err = item.ValueCopy(nil)
-		}
-		return err
-	})
-	return val, err
+type levelDB struct {
+	db *leveldb.DB
 }
 
-func (bg *badgerGetter) HasKey(key []byte) bool {
-	err := bg.db.View(func(txn *badger.Txn) error {
-		_, err := txn.Get(key)
-		return err
-	})
+func (lg *levelDB) Get(key []byte) ([]byte, error) {
+	return lg.db.Get(key, nil)
+}
+
+func (lg *levelDB) HasKey(key []byte) bool {
+	_, err := lg.db.Get(key, nil)
 	return err == nil
 }
 
-func updateBadgerDB(db *badger.DB, fns []updateFunc) error {
-	return db.Update(func(txn *badger.Txn) error {
-		for _, fn := range fns {
-			if err := fn(txn); err != nil {
-				return err
-			}
+func (lg *levelDB) Set(key, value []byte) error {
+	return lg.db.Put(key, value, nil)
+}
+
+func updateLevelDB(db *levelDB, fns []updateFunc) error {
+	for _, fn := range fns {
+		if err := fn(db); err != nil {
+			return err
 		}
-		return nil
-	})
+	}
+	return nil
 }
 
 func concatBytes(srcs ...[]byte) []byte {

@@ -20,9 +20,6 @@ import (
 	"github.com/wooyang2018/ppov-blockchain/node"
 )
 
-const WorkerProportion float32 = 1
-const VoterProportion float32 = 0.8
-
 func ReadRemoteHosts(hostsPath string, nodeCount int) ([]string, error) {
 	raw, err := os.ReadFile(hostsPath)
 	if err != nil {
@@ -89,7 +86,7 @@ func MakePeers(keys []*core.PrivateKey, addrs []multiaddr.Multiaddr) []node.Peer
 	return vlds
 }
 
-func SetupTemplateDir(dir string, keys []*core.PrivateKey, vlds []node.Peer) error {
+func SetupTemplateDir(dir string, keys []*core.PrivateKey, vlds []node.Peer, WorkerProportion, VoterProportion float32) error {
 	if err := os.RemoveAll(dir); err != nil {
 		return err
 	}

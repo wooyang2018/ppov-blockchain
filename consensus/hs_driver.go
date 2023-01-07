@@ -31,14 +31,14 @@ func (hsd *hsDriver) MajorityValidatorCount() int {
 }
 
 func (hsd *hsDriver) CreateLeaf(parent hotstuff.Block, qc hotstuff.QC, height uint64) hotstuff.Block {
-	batchHeaders := hsd.leaderState.popReadyBatch()
-	txs := hsd.extractBatchTxs(batchHeaders)
+	headers := hsd.leaderState.popReadyHeaders()
+	txs := hsd.extractBatchTxs(headers)
 	//core.Block的链式调用
 	blk := core.NewBlock().
 		SetParentHash(parent.(*hsBlock).block.Hash()).
 		SetQuorumCert(qc.(*hsQC).qc).
 		SetHeight(height).
-		SetBatchHeaders(batchHeaders, false).
+		SetBatchHeaders(headers, false).
 		SetTransactions(txs).
 		SetExecHeight(hsd.resources.Storage.GetBlockHeight()).
 		SetMerkleRoot(hsd.resources.Storage.GetMerkleRoot()).
@@ -46,7 +46,7 @@ func (hsd *hsDriver) CreateLeaf(parent hotstuff.Block, qc hotstuff.QC, height ui
 		Sign(hsd.resources.Signer)
 	hsd.state.setBlock(blk)
 	widx := hsd.resources.VldStore.GetWorkerIndex(hsd.resources.Signer.PublicKey())
-	logger.I().Debugw("generated block", "batches", len(batchHeaders), "txs", len(blk.Transactions()), "worker", widx)
+	logger.I().Debugw("generated block", "batches", len(headers), "txs", len(blk.Transactions()), "worker", widx)
 	return newHsBlock(blk, hsd.state)
 }
 

@@ -66,8 +66,8 @@ func (blk *Block) Validate(vs ValidatorStore) error {
 		if err := blk.quorumCert.Validate(vs); err != nil {
 			return err
 		}
-		for _, batch := range blk.BatchHeaders() {
-			if err := batch.Validate(vs); err != nil {
+		for _, header := range blk.BatchHeaders() {
+			if err := header.Validate(vs); err != nil {
 				return err
 			}
 		}

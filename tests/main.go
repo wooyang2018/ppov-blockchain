@@ -20,8 +20,10 @@ import (
 )
 
 var (
-	WorkDir   = "./workdir"
-	NodeCount = 7
+	WorkDir                  = "./workdir"
+	NodeCount                = 4
+	WorkerProportion float32 = 1
+	VoterProportion  float32 = 1
 
 	LoadTxPerSec     = 100
 	LoadMintAccounts = 100
@@ -174,10 +176,12 @@ func buildPPoVCoinBinCC() {
 
 func makeLocalClusterFactory() *cluster.LocalFactory {
 	ftry, err := cluster.NewLocalFactory(cluster.LocalFactoryParams{
-		BinPath:    "./chain",
-		WorkDir:    path.Join(WorkDir, "local-clusters"),
-		NodeCount:  NodeCount,
-		NodeConfig: getNodeConfig(),
+		BinPath:          "./chain",
+		WorkDir:          path.Join(WorkDir, "local-clusters"),
+		NodeCount:        NodeCount,
+		WorkerProportion: WorkerProportion,
+		VoterProportion:  VoterProportion,
+		NodeConfig:       getNodeConfig(),
 	})
 	check(err)
 	return ftry
@@ -185,16 +189,18 @@ func makeLocalClusterFactory() *cluster.LocalFactory {
 
 func makeRemoteClusterFactory() *cluster.RemoteFactory {
 	ftry, err := cluster.NewRemoteFactory(cluster.RemoteFactoryParams{
-		BinPath:       "./chain",
-		WorkDir:       path.Join(WorkDir, "remote-clusters"),
-		NodeCount:     NodeCount,
-		NodeConfig:    getNodeConfig(),
-		LoginName:     RemoteLoginName,
-		KeySSH:        RemoteKeySSH,
-		HostsPath:     RemoteHostsPath,
-		RemoteWorkDir: RemoteWorkDir,
-		SetupRequired: RemoteSetupRequired,
-		NetworkDevice: RemoteNetworkDevice,
+		BinPath:          "./chain",
+		WorkDir:          path.Join(WorkDir, "remote-clusters"),
+		NodeCount:        NodeCount,
+		WorkerProportion: WorkerProportion,
+		VoterProportion:  VoterProportion,
+		NodeConfig:       getNodeConfig(),
+		LoginName:        RemoteLoginName,
+		KeySSH:           RemoteKeySSH,
+		HostsPath:        RemoteHostsPath,
+		RemoteWorkDir:    RemoteWorkDir,
+		SetupRequired:    RemoteSetupRequired,
+		NetworkDevice:    RemoteNetworkDevice,
 	})
 	check(err)
 	return ftry

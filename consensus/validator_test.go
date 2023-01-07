@@ -44,10 +44,10 @@ func TestValidator_verifyProposalToVote(t *testing.T) {
 	// Not found tx means sync txs failed. If sync failed, cannot vote already
 	tx5 := core.NewTransaction().SetExpiry(15).Sign(core.GenerateKey(nil))
 
-	batch1 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx4.Hash()}).Sign(priv0)
-	batch2 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx2.Hash(), tx4.Hash()}).Sign(priv0)
-	batch3 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx3.Hash(), tx4.Hash()}).Sign(priv0)
-	batch4 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx5.Hash(), tx4.Hash()}).Sign(priv0)
+	header1 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx4.Hash()}).Sign(priv0)
+	header2 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx2.Hash(), tx4.Hash()}).Sign(priv0)
+	header3 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx3.Hash(), tx4.Hash()}).Sign(priv0)
+	header4 := core.NewBatch().Header().SetTransactions([][]byte{tx1.Hash(), tx5.Hash(), tx4.Hash()}).Sign(priv0)
 
 	mStrg.On("HasTx", tx1.Hash()).Return(false)
 	mStrg.On("HasTx", tx2.Hash()).Return(true)
@@ -74,37 +74,37 @@ func TestValidator_verifyProposalToVote(t *testing.T) {
 	}{
 		{"valid", true, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
+			SetBatchHeaders([]*core.BatchHeader{header1}, true).
 			Sign(priv1),
 		},
 		{"proposer is not leader", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
+			SetBatchHeaders([]*core.BatchHeader{header1}, true).
 			Sign(priv0),
 		},
 		{"different exec height", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(9).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
+			SetBatchHeaders([]*core.BatchHeader{header1}, true).
 			Sign(priv1),
 		},
 		{"different merkle root", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot([]byte("different")).
-			SetBatchHeaders([]*core.BatchHeader{batch1}, true).
+			SetBatchHeaders([]*core.BatchHeader{header1}, true).
 			Sign(priv1),
 		},
 		{"committed tx", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch2}, true).
+			SetBatchHeaders([]*core.BatchHeader{header2}, true).
 			Sign(priv1),
 		},
 		{"expired tx", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch3}, true).
+			SetBatchHeaders([]*core.BatchHeader{header3}, true).
 			Sign(priv1),
 		},
 		{"not found tx", false, core.NewBlock().
 			SetHeight(14).SetExecHeight(10).SetMerkleRoot(mRoot).
-			SetBatchHeaders([]*core.BatchHeader{batch4}, true).
+			SetBatchHeaders([]*core.BatchHeader{header4}, true).
 			Sign(priv1),
 		},
 	}
